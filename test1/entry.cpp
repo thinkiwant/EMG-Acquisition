@@ -26,9 +26,9 @@ int main() {
 	command[0] |= NCH * 8;
 	command[0] |= FSAMP * 32;
 
-	//std::thread t1(threadProcess, "192.168.1.2", command);
-	Sleep(1000);
-	std::thread t2(threadProcess, "192.168.1.100", command);
+	std::thread t1(threadProcess, "192.168.1.2", command);
+	Sleep(1500);
+	std::thread t2(threadProcess, "192.168.1.2", command);
 	Sleep(1000);
 	cout << "Entry q to exit from the program.\n";
 
@@ -39,7 +39,7 @@ int main() {
 			cout << "Entry q to exit from the program.\n";
 	}
 
-	//t1.join();
+	t1.join();
 	t2.join();
 	return 0;
 }

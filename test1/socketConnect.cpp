@@ -28,28 +28,11 @@ bool socketConnect::listenSocket() {
 	return true;
 }
 
-/*
-bool socketConnect::acceptSocket() {
-	int len = sizeof(SOCKADDR);
-	cout << "debug1"<<endl;
-	s_accept = accept(s_server, (SOCKADDR*)&accept_addr, &len);
-	cout << "debug2" << endl;
 
-	if (s_accept == SOCKET_ERROR) {
-		print("连接失败");
-		cout << "connection fail" << endl;
-		WSACleanup();
-		return false;
-	}
-	print("连接成功");
-	return true;
-}
-*/
-bool socketConnect::acceptSocket() {
+
+bool socketConnect::acceptSocket(SOCKET & s_accept) {
 	int len = sizeof(SOCKADDR);
-	cout << "debug1" << endl;
 	s_accept = accept(s_server, (SOCKADDR*)&accept_addr, &len);
-	cout << "debug2" << endl;
 	if (s_accept == SOCKET_ERROR) {
 		print("连接失败");
 		cout << "connection fail" << endl;
@@ -94,7 +77,7 @@ bool socketConnect::sendCmd(char* c) {
 
 void socketConnect::record() {
 	ofstream oFile;
-	int frame_bytes = numChan * data_bytes;
+	int frame_bytes = numChan * data_bytes*20;
 	int recv_len = 0;
 
 	//第一次设置timer
@@ -113,7 +96,7 @@ void socketConnect::record() {
 		if (state != 0)
 			break;
 		recv_len = recv(s_accept, recv_buf, frame_bytes, 0);
-
+/* set begaining CPU time */
 		if (!initiated) {
 			if (!startSign) {
 				startSign = true;
@@ -126,9 +109,13 @@ void socketConnect::record() {
 			initiated = true;
 		}
 		currentTime = timer.timeCount();
-		//char c[64];
-		//sprintf(c, "\n收到%d字节数据.\n", recv_len);
-		//print(c);
+
+
+
+
+		char c[64];
+		sprintf(c, "\n收到%d字节数据.\n", recv_len);
+		print(c);
 		//cout << "**************************************************" << endl;
 
 		if (recv_len < 0) {
@@ -142,7 +129,10 @@ void socketConnect::record() {
 				//printf("0x%02x ", (unsigned char)recv_buf[i]);
 				for (int j = 0; j < data_bytes; j++) {
 					//printf("0x%02x ", (unsigned int)(unsigned char)recv_buf[i + j]);
-					temp += (unsigned int)(unsigned char)recv_buf[i + j] * power[j];
+					if(i+j ==recv_len - 2-data_bytes )
+						temp += ((unsigned int)(unsigned char)recv_buf[i + j]&&0x3f) * power[j];
+					else
+						temp += (unsigned int)(unsigned char)recv_buf[i + j] * power[j];
 
 
 
@@ -158,17 +148,21 @@ void socketConnect::record() {
 				}
 				else
 				{
-					//printf(" %d ", temp);
+					//printf(" %d ", temp);	
 					oFile << temp << ",";
+					
 				}
 
 				temp = 0;
 
-				if ((i + data_bytes) % frame_bytes == 0) {
+				/*   (output CPU time)*/
+				if (((i - data_bytes) % frame_bytes == 0)&&(i>data_bytes)) {
 					oFile << currentTime;
 					oFile << endl;
 
 				}
+
+
 
 			}
 

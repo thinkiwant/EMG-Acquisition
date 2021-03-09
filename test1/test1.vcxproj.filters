@@ -24,6 +24,9 @@
     <ClInclude Include="socketConnect.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="acptSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="entry.cpp">
@@ -33,6 +36,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="timer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="acptSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

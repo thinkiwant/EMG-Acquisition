@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="acptSocket.cpp" />
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="socketConnect.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="acptSocket.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="socketConnect.h" />
     <ClInclude Include="timer.h" />

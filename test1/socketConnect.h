@@ -46,7 +46,6 @@ public:
 		setCmd(exitCmd);
 		sendCmd();
 		closesocket(s_server);
-		closesocket(s_accept);
 		WSACleanup();
 		print("Disconnected");
 	}
@@ -54,7 +53,8 @@ public:
 	void initialization();
 	bool createSocket();
 	bool listenSocket();
-	bool acceptSocket();
+	bool acceptSocket(SOCKET &);
+
 	bool sendCmd();
 	bool sendCmd(char* c);
 	void record();
@@ -64,14 +64,15 @@ public:
 	void run() {
 		if (createSocket()) {
 			if (listenSocket()) {
-				if (acceptSocket()) {
+				if (acceptSocket(s_accept)) {
+					closesocket(s_server);
 					if (sendCmd())
 						record();
 					return;
+					
 				}
 			}
 		}
-
 
 	}
 
