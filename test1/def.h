@@ -1,7 +1,7 @@
 #pragma once
+#include<cstdio>
 
-
-#define FSAMP 2 // 0:500Hz 1:1k 2:2k 3:4k
+#define FSAMP 1 // 0:500Hz 1:1k 2:2k 3:4k
 #define NCH 3
 #define MODE 0
 #define HRES 1
@@ -10,6 +10,7 @@
 #define TRIG 0
 #define GO 1
 #define ConvFact 286e-6
+#define PRINT_TYPE 1
 
 #if HRES == 1
 #define DATA_BYTES  3
@@ -78,5 +79,6 @@ define DATA_BYTES  2
 #define SAMPFREQ 4000
 #endif
 #endif
+
 
 

@@ -139,15 +139,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="acptSocket.cpp" />
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="socketConnect.cpp" />
+    <ClCompile Include="srvSock.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="acptSocket.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="socketConnect.h" />
+    <ClInclude Include="srvSock.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

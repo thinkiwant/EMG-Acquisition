@@ -17,3 +17,9 @@
 *.db-shm
 *.opendb
 *.db-wal
+*.iobj
+*.ipdb
+*.log
+*.obj
+*.txt
+*.recipe

@@ -1,20 +1,20 @@
-#include"socketConnect.h"
-#include<thread>
+
+#include"srvSock.h"
+
 
 #pragma warning(disable:4996)
-#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib,"ws2_32.lib")//依赖项
 
-void threadProcess(const string& s, char*);
 void exit();
+void threadprocess();
 
 int socketConnect::num = 0;
-
+char socketConnect::cmd[]{};
 LARGE_INTEGER refTime;
 bool startSign = false;
 bool exitSign = false;
 
 int main() {
-
 	//设置控制字
 	char command[2] = { 0,0 };
 	command[1] |= GO; //控制字1
@@ -25,31 +25,27 @@ int main() {
 	command[0] |= MODE;//控制字0
 	command[0] |= NCH * 8;
 	command[0] |= FSAMP * 32;
+	socketConnect::cmd[0] = command[0];
+	socketConnect::cmd[1] = command[1];
+	thread t1(threadprocess);
 
-	std::thread t1(threadProcess, "192.168.1.2", command);
-	Sleep(1500);
-	std::thread t2(threadProcess, "192.168.1.2", command);
-	Sleep(1000);
+
 	cout << "Entry q to exit from the program.\n";
 
 	while (1) {
-		if (getchar() == 'q')
+		if (getchar() == 'q') {
 			exit();
-		else
+			break;
+		}
+		else if (getchar() != '\r');
 			cout << "Entry q to exit from the program.\n";
 	}
-
 	t1.join();
-	t2.join();
 	return 0;
 }
 
-void threadProcess(const string& s, char* cmd) {
-	const char* ip = s.data();
-	socketConnect s1(ip, 45454, 1);
-	s1.setCmd(cmd);
-	s1.run();
-	return;
+void threadprocess() {
+	srvSock server1;
 }
 
 void exit() {
