@@ -1,11 +1,11 @@
 #pragma once
 #include<cstdio>
 
-#define FSAMP 1 // 0:500Hz 1:1k 2:2k 3:4k
+#define FSAMP 2 // 0:500Hz 1:1k 2:2k 3:4k
 #define NCH 3
 #define MODE 0
 #define HRES 1
-#define HPF 0
+#define HPF 1
 #define EXTEN 0
 #define TRIG 0
 #define GO 1

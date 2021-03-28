@@ -5,29 +5,35 @@
 class srvSock
 {
 public:
-	srvSock();
+	srvSock(const char * ipAddr = "0,0,0,0");
 private:
 
 	sockaddr_in srv_addr, clt_addr;
 	SOCKET srvsock, cltsock;
 	int cltsock_num, addr_sz = sizeof(clt_addr);
+	TIMEVAL timeout;
+	fd_set reads, cpyReads;
+	int fdNum, i;
 	vector<socketConnect*> cltsocks;
 	int initialization();
 	int srvbind();
 	int srvlisten();
 	int srvaccept();
+	void run();
 	void quit() {
 		WSACleanup();
 		closesocket(srvsock);
-		closesocket(cltsock);
+		//closesocket(cltsock);
 	}
+	void setSockOpt();
 public:
 	~srvSock()
 	{
-		quit();
-		(**(cltsocks.end() - 1)).quit();
-		for (auto ptr : cltsocks)
+
+		for (auto ptr : cltsocks) {
 			delete ptr;
+		}
+		quit();
 	}
 };
 

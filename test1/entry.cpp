@@ -6,7 +6,8 @@
 #pragma comment(lib,"ws2_32.lib")//“¿¿µœÓ
 
 void exit();
-void threadprocess();
+void threadprocess(string);
+void dataTransform();
 
 int socketConnect::num = 0;
 char socketConnect::cmd[]{};
@@ -27,7 +28,9 @@ int main() {
 	command[0] |= FSAMP * 32;
 	socketConnect::cmd[0] = command[0];
 	socketConnect::cmd[1] = command[1];
-	thread t1(threadprocess);
+	thread t1(threadprocess, "192.168.1.2");
+	thread t2(threadprocess, "192.168.1.100");
+	thread t3(threadprocess, "192.168.1.101");
 
 
 	cout << "Entry q to exit from the program.\n";
@@ -41,11 +44,21 @@ int main() {
 			cout << "Entry q to exit from the program.\n";
 	}
 	t1.join();
+	t2.join();
+	t3.join();
+	cout << "Enter S to tranform the data.\n";
+	char temp = getchar();
+		
+	if (getchar() == 's') {
+		cout << "Transforming data\n";
+		dataTransform();
+	}
+
 	return 0;
 }
 
-void threadprocess() {
-	srvSock server1;
+void threadprocess(string ipAddr) {
+	srvSock server1(ipAddr.c_str());
 }
 
 void exit() {

@@ -13,18 +13,33 @@ void print(const string& s) {
 		OutputDebugStringA(p);
 	}
 }
-socketConnect::socketConnect(SOCKET clt_sock, const int nC, const int dB, const int sF) :s_accept(clt_sock), numChan(nC), data_bytes(dB), sampFreq(sF) {
+socketConnect::socketConnect(SOCKET clt_sock,string & add_str, const int nC, const int dB, const int sF) :s_accept(clt_sock), numChan(nC), data_bytes(dB), sampFreq(sF) {
+	this_address = add_str;
 	mtx1.lock();
 	thisNum = ++this->num;
 	mtx1.unlock();
+	openFile();
+
 
 }
 
 
 socketConnect::~socketConnect() {
-	//quit();
+	quit();
 }
 
+void socketConnect::openFile() {
+	char file_name[10];
+	this_address.erase(0, 10);
+	this_address += "EMG.csv";
+	sprintf(file_name, "EMG%d.csv", thisNum);
+	oFile.open(this_address.c_str(), ios::out | ios::trunc);
+	print("打开文件成功");
+}
+
+void socketConnect::closeFile() {
+	oFile.close();
+}
 
 
 bool socketConnect::sendCmd() {
@@ -59,26 +74,22 @@ bool socketConnect::sendCmd(char* c) {
 }
 
 void socketConnect::record() {
-	cout << "record" << endl;
-	ofstream oFile;
-	int frame_bytes = numChan * data_bytes;
-	int frames_bytes = frame_bytes * 5;
+	int frame_bytes = numChan * data_bytes*2;
+	int frames_bytes = frame_bytes;
 	int recv_len = 0;
 
 	//第一次设置timer
 
 	int currentTime = 0;
 
+	//char* recv_buf;
+	//recv_buf = new char[frames_bytes];
+	char recv_buf[NUMCHAN * DATA_BYTES*2];
 
-	char* recv_buf;
-	recv_buf = new char[frames_bytes];
-	char file_name[10];
-	sprintf(file_name, "EMG%d.csv", thisNum);
-	oFile.open(file_name, ios::out | ios::trunc);
-	print("打开文件成功");
-	while (!exitSign) {
-		if (state != 0)
-			break;
+	//while (!exitSign) {
+		//if (state != 0)
+			//break;
+	//cout << thisNum << " " << timer.timeCount() <<"  receive time:";
 		recv_len = recv(s_accept, recv_buf, frames_bytes, 0);
 /* set begaining CPU time */
 		if (!initiated) {
@@ -94,8 +105,10 @@ void socketConnect::record() {
 			mtx2.unlock();
 			initiated = true;
 		}
-		//currentTime = timer.timeCount();
 
+		currentTime = timer.timeCount();
+
+		//cout <<thisNum<<" " <<timer.timeCount() << endl;
 
 
 
@@ -106,27 +119,19 @@ void socketConnect::record() {
 
 		if (recv_len < 0) {
 			print("接收失败");
-			break;
+			//break;
 		}
-		else
-		{	
+		else{	
 			
-			char* ptr = recv_buf;
+	
 			for (int i = 0, frames = recv_len / frame_bytes; i < frames; i++) {
 				char* ptr = recv_buf + i * frame_bytes;
 				for (int j = 0; j < frame_bytes; j++)
 					oFile << (unsigned int)(unsigned char)*(ptr++)<<",";
-				oFile << endl;
+				oFile << currentTime << endl;
 			}
-			
-
 
 		}
-	}
-	quit();
-	oFile.close();
-	delete[]recv_buf;//释放动态数组b   
-
 }
 
 
@@ -138,9 +143,9 @@ void socketConnect::print(const string& s) {
 
 void socketConnect::quit() {
 	char exitCmd[2] = { 0,0 };
-	setCmd(exitCmd);
-	sendCmd();
-	WSACleanup();
+	sendCmd(exitCmd);
+	//WSACleanup();
 	closesocket(s_accept);
 	print("Disconnected");
+	closeFile();
 }

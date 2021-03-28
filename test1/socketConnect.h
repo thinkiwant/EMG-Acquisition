@@ -24,7 +24,6 @@ extern bool exitSign;
 
 class socketConnect
 {
-
 	SOCKET s_accept;
 	SOCKADDR_IN accept_addr;
 
@@ -34,24 +33,25 @@ class socketConnect
 	bool initiated = false;
 	const int numChan, data_bytes, sampFreq;
 
+	ofstream oFile;
+
 public:
 	static int num;
+	//int syncCount=50;
 	static char cmd[2];
-	socketConnect(SOCKET clt_sock, const int nC = NUMCHAN, const int dB = DATA_BYTES, const int sF = SAMPFREQ);
+	socketConnect(SOCKET clt_sock, string& add_str, const int nC = NUMCHAN, const int dB = DATA_BYTES, const int sF = SAMPFREQ);
 	~socketConnect();
 
+	string this_address;
 	bool sendCmd();
 	bool sendCmd(char* const c);
+	void openFile();
+	void closeFile();
 	void record();
 	void print(const string& s);
 	void setCmd(char* c) { cmd[0] = c[0]; cmd[1] = c[1]; }
 	void setState() { state++; }
-	void run() {
-		if (sendCmd())
-			record();
-		return;
 
-	}
 	void quit();
 	void dataTransform();
 
