@@ -1,6 +1,8 @@
 #pragma once
 #include<cstdio>
 
+//模块控制字
+
 #define FSAMP 2 // 0:500Hz 1:1k 2:2k 3:4k
 #define NCH 3
 #define MODE 0
@@ -80,5 +82,9 @@ define DATA_BYTES  2
 #endif
 #endif
 
+//运行参数
+#define MAX_SECONDS 1000
+#define DEVICES_NUM 3
 
+#define TIMEBITS 8
 

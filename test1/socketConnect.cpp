@@ -1,6 +1,6 @@
 #include "socketConnect.h"
 #pragma warning(disable:4996)
-mutex mtx1, mtx2;
+mutex mtx1, mtx2, mtx3;
 
 void print(const string& s) {
 	if (PRINT_TYPE) {
@@ -17,6 +17,7 @@ socketConnect::socketConnect(SOCKET clt_sock,string & add_str, const int nC, con
 	this_address = add_str;
 	mtx1.lock();
 	thisNum = ++this->num;
+	deviceNum = this_address.back()-'0';
 	mtx1.unlock();
 	openFile();
 
@@ -74,42 +75,33 @@ bool socketConnect::sendCmd(char* c) {
 }
 
 void socketConnect::record() {
-	int frame_bytes = numChan * data_bytes*2;
-	int frames_bytes = frame_bytes;
+	static int frame_bytes = numChan * data_bytes;
+	static int frames_bytes = frame_bytes;
 	int recv_len = 0;
 
-	//第一次设置timer
-
-	int currentTime = 0;
-
-	//char* recv_buf;
-	//recv_buf = new char[frames_bytes];
-	char recv_buf[NUMCHAN * DATA_BYTES*2];
-
-	//while (!exitSign) {
-		//if (state != 0)
-			//break;
-	//cout << thisNum << " " << timer.timeCount() <<"  receive time:";
-		recv_len = recv(s_accept, recv_buf, frames_bytes, 0);
-/* set begaining CPU time */
-		if (!initiated) {
-			mtx2.lock();
-			if (!startSign) {
-				startSign = true;
-				refTime = timer.begin();
-			}
-			else
-			{
-				timer.begin(refTime);
-			}
-			mtx2.unlock();
-			initiated = true;
+	/* set beginning CPU time */
+	if (!initiated) {
+		mtx2.lock();
+		if (!startSign) {
+			startSign = true;
+			refTime = timer.begin();
 		}
+		else
+		{
+			timer.begin(refTime);
+		}
+		mtx2.unlock();
+		initiated = true;
+	}
 
-		currentTime = timer.timeCount();
 
-		//cout <<thisNum<<" " <<timer.timeCount() << endl;
-
+	recv_len = recv(s_accept, dataa[deviceNum-2][index1][index2], frames_bytes, 0);
+	int currentTime = timer.timeCount();
+	itoa(currentTime, &dataa[deviceNum - 2][index1][index2][frames_bytes],10);
+	if (++index2 == SAMPFREQ) {
+		index2 = 0;
+		index1++;
+	}
 
 
 		//char c[64];
@@ -121,9 +113,9 @@ void socketConnect::record() {
 			print("接收失败");
 			//break;
 		}
+
+		/*
 		else{	
-			
-	
 			for (int i = 0, frames = recv_len / frame_bytes; i < frames; i++) {
 				char* ptr = recv_buf + i * frame_bytes;
 				for (int j = 0; j < frame_bytes; j++)
@@ -132,6 +124,10 @@ void socketConnect::record() {
 			}
 
 		}
+		*/
+
+
+
 }
 
 

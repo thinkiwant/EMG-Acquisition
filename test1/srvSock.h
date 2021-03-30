@@ -23,18 +23,18 @@ private:
 	void quit() {
 		WSACleanup();
 		closesocket(srvsock);
-		//closesocket(cltsock);
 	}
 	void setSockOpt();
 public:
 	~srvSock()
 	{
-
 		for (auto ptr : cltsocks) {
 			delete ptr;
 		}
 		quit();
 	}
+	void dataTransform();
+
 };
 
 

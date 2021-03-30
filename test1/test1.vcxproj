@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dataTransform.cpp" />
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="socketConnect.cpp" />
     <ClCompile Include="srvSock.cpp" />

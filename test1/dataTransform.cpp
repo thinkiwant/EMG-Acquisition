@@ -4,22 +4,20 @@
 #include<sstream>
 #include<vector>
 #include"socketConnect.h"
+#include "entry.cpp"
+#include"srvSock.h"
 
 using namespace std;
 extern const int scale[];
 extern const int power[];
 
+bool greaterThan(char* a, char* b);
+bool greaterThan(socketConnect, socketConnect);
 
 void dataTransform() {
 	ofstream outFile("EMG.csv");
-	ifstream ifile1("12EMG.csv");
-	ifstream ifile2("13EMG.csv");
-	ifstream ifile3("14EMG.csv");
 	string line, line1;
-	vector<ifstream*> mdList;
-	mdList.push_back(&ifile1);
-	mdList.push_back(&ifile2);
-	mdList.push_back(&ifile3);
+
 
 	int startTime = -1, temp = -1;
 
@@ -70,6 +68,18 @@ void dataTransform() {
 				temp1 = 0;
 			}
 		}
+
+
+///
+		char*** refData = NULL;
+		for (int i = 0; i < DEVICES_NUM; i++)
+			;
+			refData = greaterThan(&dataa[i][MAX_SECONDS][SAMPFREQ][NUMCHAN * DATA_BYTES], &dataa[i + 1][MAX_SECONDS][SAMPFREQ][NUMCHAN * DATA_BYTES]) ? dataa[i]: dataa[i + 1];
+
+
+
+
+
 		outFile << endl;
 
 	}
@@ -77,4 +87,27 @@ void dataTransform() {
 	for (auto p : mdList)
 		p->close();
 	outFile.close();
+}
+
+bool greaterThat(char* a, char* b) {
+	for (int i = 0; i < 4; i++) {
+		if (a[i] > b[i])
+			return 1;
+	}
+	return 0;
+}
+
+bool greaterThan(const socketConnect& a, const socketConnect& b) {
+	if (a.index1 > b.index1)
+		return 1;
+	else if (a.index1 == b.index1) {
+		if (a.index2 > b.index2)
+			return 1;
+		else if (a.index2 == b.index2) {
+			if (a.samples > b.samples)
+				return 1;
+		}
+		return 0;
+			
+	}		
 }

@@ -17,10 +17,11 @@ const int scale[] = { 32768, 65536, 8388608, 16777216 };
 //const int power[] = { 1,256,65536 };//little endian
 const int power[] = { 65536, 256, 1 };
 
-extern mutex mtx1, mtx2;
+extern mutex mtx1, mtx2, mtx3;
 extern LARGE_INTEGER refTime;
 extern bool startSign;
 extern bool exitSign;
+extern char*** dataa[DEVICES_NUM];
 
 class socketConnect
 {
@@ -37,6 +38,7 @@ class socketConnect
 
 public:
 	static int num;
+	int index1 = 0, index2 = 0, samples = 0, deviceNum;
 	//int syncCount=50;
 	static char cmd[2];
 	socketConnect(SOCKET clt_sock, string& add_str, const int nC = NUMCHAN, const int dB = DATA_BYTES, const int sF = SAMPFREQ);
@@ -53,8 +55,6 @@ public:
 	void setState() { state++; }
 
 	void quit();
-	void dataTransform();
-
 };
 
 

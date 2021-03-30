@@ -1,6 +1,8 @@
 #include "srvSock.h"
 
 void data_transfer(socketConnect&);
+bool greaterThan(const socketConnect& a, const socketConnect& b);
+bool findIndex(int& index1, int& index2, char*** targetTime, char* refTime,int );
 
 srvSock::srvSock(const char * ipAddr) :cltsock_num(0), cltsocks({}) {
 	srv_addr.sin_family = AF_INET;
@@ -98,7 +100,6 @@ int srvSock::srvaccept() {
 	cltsock = accept(srvsock, (sockaddr*)&clt_addr, &addr_sz);
 	string add_str = inet_ntoa(clt_addr.sin_addr);
 	FD_SET(cltsock, &reads);
-	print("Client socket is connected.\n");
 	socketConnect* ptr = new socketConnect(cltsock, add_str);
 	cltsocks.push_back(ptr);
 	cltsock_num = cltsocks.size();
@@ -118,4 +119,104 @@ void srvSock::setSockOpt() {
 
 	if (!state)
 		printf("***** Nagle is enabled ? %d\n ", optval);
+}
+
+void srvSock::dataTransform() {
+	std::ofstream f1("data1.csv");
+	int index1Group[DEVICES_NUM]{ 0,0,0 }, index2Group[DEVICES_NUM]{ 0,0,0 };
+	int temp = 0,final_data=0;
+	int lestDeviceId=cltsocks[0]->deviceNum,lestDeviceIndex=0;
+	socketConnect* ptrLestSockCon = cltsocks[0];
+	for (int i = 1; i < DEVICES_NUM ; i++) {
+		if (greaterThan(*ptrLestSockCon, *cltsocks[i])) {
+			ptrLestSockCon = cltsocks[i];
+			lestDeviceId = cltsocks[i]->deviceNum;
+			lestDeviceIndex = i;
+		}
+	}
+	cout << "lestDeviceID is " << lestDeviceId << endl;
+	
+	/*
+		for (int i = 0; i < DEVICES_NUM; i++)
+			for(int j=0;j<100;j++)
+				cout <<"device"<<i<<"'s"<<j<<" th: "<< &dataa[i][0][j][NUMCHAN * DATA_BYTES]<<endl;
+	*/
+
+
+	for (int i = 0; i < DEVICES_NUM; i++) {
+		if (i == lestDeviceId-2) {
+			index1Group[i] = 0;// Set the number of samples to drop
+			index2Group[i] = 200;
+		}
+		else
+		{
+			if (!findIndex(index1Group[i], index2Group[i], dataa[i], &dataa[lestDeviceId-2][0][200][NUMCHAN*DATA_BYTES], ptrLestSockCon->index1))//Set the number of samples to drop
+				cout << "Device " << i << " Find Index error" << endl;
+			else
+				cout <<"Device "<< i << " Index found successfully" << endl;
+		}
+
+	}
+	cout << "Data transforming\n"<<"Progress second:  ";
+	
+	for (int second = 0; second < ptrLestSockCon->index1; second++){
+		printf("\b\b%2d", second);
+		for (int freq = 0; freq < SAMPFREQ; freq++){
+			for (int device = 0; device < DEVICES_NUM; device++)
+				for (int chan = 0; chan < NUMCHAN - 4; chan++) {
+					for (int byte = 0; byte < DATA_BYTES; byte++)
+						temp += (unsigned int)(unsigned char)dataa[device][second + index1Group[device]][freq + index2Group[device]][chan * DATA_BYTES + byte] * power[byte];
+					final_data = (temp >= scale[HRES * 2] ? temp - scale[HRES * 2 + 1] : temp);
+					f1 << final_data * ConvFact << ",";
+					temp = 0;
+				}
+			f1 << endl;
+		}
+
+	}
+	f1.close();
+
+}
+
+bool greaterThan(const socketConnect& a, const socketConnect& b) {
+	if (a.index1 > b.index1)
+		return 1;
+	else if (a.index1 == b.index1) {
+		if (a.index2 > b.index2)
+			return 1;
+		else if (a.index2 == b.index2) {
+			if (a.samples > b.samples)
+				return 1;
+		}		
+	}	
+	return 0;
+}
+
+bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int maxSeconds ) {
+	double acc=0;
+	char refchar, tarchar;
+	for(int i=0;i<maxSeconds;i++)
+		for (int j = 0; j < SAMPFREQ; j++) {
+			acc = 0;
+			for (int k = 0; k < TIMEBITS; k++) {
+				refchar = *(refTime + k);
+				tarchar = *(&targetTime[i][j][NUMCHAN * DATA_BYTES] + k);
+
+				acc += (refchar - tarchar) * pow(0.1, k);
+				if ((refchar == '\0') && (tarchar == '\0')) {
+					//cout << "Í¬³¤¶È acc = "<<acc<<endl;
+					//printf("dataa[%d][%d][n+%d]refchar: %c, tarchar: %c\n ", i, j, k, refchar, tarchar);
+					if (acc * pow(10, k-1) < 20) {// Timestamp difference threshold is set as 20us
+						index1 = i;
+						index2 = j;
+						return 1;
+					}
+					else
+						break;
+				}
+				else if ((tarchar == '\0') || (refchar == '\0'))
+					break;
+			}
+		}
+	return 0;
 }
