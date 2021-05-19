@@ -15,16 +15,20 @@ LARGE_INTEGER refTime;
 bool startSign = false;
 bool exitSign = false;
 
-char** data1[MAX_SECONDS], ** data2[MAX_SECONDS], ** data3[MAX_SECONDS];
+char** data1[MAX_SECONDS], ** data2[MAX_SECONDS], ** data3[MAX_SECONDS], **data4[MAX_SECONDS];
 char*** dataa[DEVICES_NUM];
+
+
 
 int main() {
 	dataa[0] = data1;
 	dataa[1] = data2;
 	dataa[2] = data3;
+	dataa[3] = data4;
 	//ÉèÖÃ¿ØÖÆ×Ö
 	char command[2] = { 0,0 };
 	command[1] |= GO; //¿ØÖÆ×Ö1
+	command[1] |= REC * 2;
 	command[1] |= TRIG * 4;
 	command[1] |= EXTEN * 16;
 	command[1] |= HPF * 64;
@@ -35,8 +39,6 @@ int main() {
 	socketConnect::cmd[0] = command[0];
 	socketConnect::cmd[1] = command[1];
 
-
-
 	for (int i = 0; i < DEVICES_NUM; i++)
 		for (int j = 0; j < MAX_SECONDS; j++) {
 			dataa[i][j] = new char* [SAMPFREQ];
@@ -44,8 +46,11 @@ int main() {
 				dataa[i][j][k] = new char[NUMCHAN * DATA_BYTES+TIMEBITS];//TIMEBITS for timestamp
 		}
 
-	thread t1(threadprocess, "192.168.1.60");
-	
+	thread t1(threadprocess, "192.168.1.2");
+
+	bool alternate = false;
+
+
 
 	cout << "Entry q to exit from the program.\n";
 
@@ -75,11 +80,15 @@ int main() {
 		}
 	*/
 
+
+
 	return 0;
 }
 
 void threadprocess(string ipAddr) {
+	//srvSock server1();
 	srvSock server1(ipAddr.c_str());
+	server1.quit();
 	server1.dataTransform();
 }
 

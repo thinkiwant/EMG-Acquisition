@@ -3,7 +3,7 @@
 
 //模块控制字
 
-#define FSAMP 2 // 0:500Hz 1:1k 2:2k 3:4k
+#define FSAMP 1 // 0:500Hz 1:1k 2:2k 3:4k
 #define NCH 3
 #define MODE 0
 #define HRES 1
@@ -11,7 +11,8 @@
 #define EXTEN 0
 #define TRIG 0
 #define GO 1
-#define ConvFact 286e-6
+#define REC 0
+#define ConvFact 286e-6		//单位:mV
 #define PRINT_TYPE 1
 
 #if HRES == 1
@@ -83,8 +84,8 @@ define DATA_BYTES  2
 #endif
 
 //运行参数
-#define MAX_SECONDS 1000
-#define DEVICES_NUM 3
-
+#define MAX_SECONDS 100
+#define DEVICES_NUM 4
+#define INDEXDIFF 0 //  "X - index"  X:=from 192.168.1.1X( X is also the deviceNum field of the SsocketConnect class) of index:= Sorder in dataa array
 #define TIMEBITS 8
 

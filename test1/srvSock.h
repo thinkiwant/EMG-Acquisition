@@ -6,6 +6,15 @@ class srvSock
 {
 public:
 	srvSock(const char * ipAddr = "0,0,0,0");
+	void sendCmd(char *);
+
+	void quit() {
+		disconnect();
+		WSACleanup();
+		closesocket(srvsock);
+
+	}
+
 private:
 
 	sockaddr_in srv_addr, clt_addr;
@@ -14,32 +23,22 @@ private:
 	TIMEVAL timeout;
 	fd_set reads, cpyReads;
 	int fdNum, i;
+
 	vector<socketConnect*> cltsocks;
 	int initialization();
 	int srvbind();
 	int srvlisten();
 	int srvaccept();
 	void run();
-	void quit() {
-		WSACleanup();
-		closesocket(srvsock);
-	}
+	void disconnect();
 	void setSockOpt();
 public:
 	~srvSock()
 	{
-		for (auto ptr : cltsocks) {
-			delete ptr;
-		}
-		quit();
+		//quit();
+		for (auto i : cltsocks)
+			delete i;
 	}
 	void dataTransform();
 
 };
-
-
-
-
-
-
-

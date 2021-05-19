@@ -1,4 +1,6 @@
 #include "srvSock.h"
+#include <ctime>
+using namespace std;
 
 void data_transfer(socketConnect&);
 bool greaterThan(const socketConnect& a, const socketConnect& b);
@@ -7,13 +9,13 @@ bool findIndex(int& index1, int& index2, char*** targetTime, char* refTime,int )
 srvSock::srvSock(const char * ipAddr) :cltsock_num(0), cltsocks({}) {
 	srv_addr.sin_family = AF_INET;
 	srv_addr.sin_addr.S_un.S_addr = inet_addr(ipAddr);
+	//srv_addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 	srv_addr.sin_port = htons(atoi("45454"));
 	print("The server socket is created.\n");
 	run();
 }
 
 void srvSock::run() {
-
 
 	if (!initialization())
 		if (!srvbind())
@@ -40,7 +42,7 @@ void srvSock::run() {
 							if (reads.fd_array[i] == srvsock)
 								srvaccept();
 							else {
-								if (i > initCount-1)
+								if (i > initCount - 1)
 									cltsocks[i - initCount]->record();
 							}
 						}
@@ -48,6 +50,12 @@ void srvSock::run() {
 				}
 			}
 				
+}
+
+void srvSock::sendCmd(char* p_cmd) {
+	for (auto i = cltsocks.begin(); i != cltsocks.end(); i++) {
+		(*i)->sendCmd(p_cmd);
+	}
 }
 
 int srvSock::initialization() {
@@ -121,20 +129,35 @@ void srvSock::setSockOpt() {
 		printf("***** Nagle is enabled ? %d\n ", optval);
 }
 
+void srvSock::disconnect() {
+	for (auto i : cltsocks)
+		i->quit();
+}
+
 void srvSock::dataTransform() {
-	std::ofstream f1("data1.csv");
+	time_t now = time(0);
+	tm* gmtm = gmtime(& now);
+	string time1{ to_string(gmtm->tm_year+1900) };
+	time1 = time1 +"-" +to_string(gmtm->tm_mon+1) + "-" + to_string(gmtm->tm_mday) + "-" + to_string(gmtm->tm_hour+8) + "-" + to_string(gmtm->tm_min) + "-" + to_string(gmtm->tm_sec);
+	time1 += ".csv";
+	std::ofstream f1(time1.c_str());
 	int index1Group[DEVICES_NUM]{ 0,0,0 }, index2Group[DEVICES_NUM]{ 0,0,0 };
 	int temp = 0,final_data=0;
+
 	int lestDeviceId=cltsocks[0]->deviceNum,lestDeviceIndex=0;
 	socketConnect* ptrLestSockCon = cltsocks[0];
+	printf("checking max seconds of %d :%d\n", cltsocks[0]->deviceNum, cltsocks[0]->index1);
 	for (int i = 1; i < DEVICES_NUM ; i++) {
+			printf("checking max seconds of %d :%d\n", cltsocks[i]->deviceNum, cltsocks[i]->index1);
 		if (greaterThan(*ptrLestSockCon, *cltsocks[i])) {
 			ptrLestSockCon = cltsocks[i];
 			lestDeviceId = cltsocks[i]->deviceNum;
 			lestDeviceIndex = i;
 		}
 	}
-	cout << "lestDeviceID is " << lestDeviceId << endl;
+	std::cout << "The last device is " << ptrLestSockCon->deviceNum << endl;
+	std::cout << "The maxseconds: " << ptrLestSockCon->index1<<", time series: "<<ptrLestSockCon->index2 << endl;
+
 	
 	/*
 		for (int i = 0; i < DEVICES_NUM; i++)
@@ -144,28 +167,47 @@ void srvSock::dataTransform() {
 
 
 	for (int i = 0; i < DEVICES_NUM; i++) {
-		if (i == lestDeviceId-2) {
+		if (i == lestDeviceId-INDEXDIFF) {
 			index1Group[i] = 0;// Set the number of samples to drop
 			index2Group[i] = 200;
 		}
 		else
 		{
-			if (!findIndex(index1Group[i], index2Group[i], dataa[i], &dataa[lestDeviceId-2][0][200][NUMCHAN*DATA_BYTES], ptrLestSockCon->index1))//Set the number of samples to drop
+			if (!findIndex(index1Group[i], index2Group[i], dataa[i], &dataa[lestDeviceId-INDEXDIFF][0][200][NUMCHAN*DATA_BYTES], ptrLestSockCon->index1))//Set the number of samples to drop
 				cout << "Device " << i << " Find Index error" << endl;
 			else
 				cout <<"Device "<< i << " Index found successfully" << endl;
 		}
 
 	}
-	cout << "Data transforming\n"<<"Progress second:  ";
+
+	int temp_i=0, temp_j=0;
+	cout << "rectify device:  ";
+	for (int i = 0; i < DEVICES_NUM; i++) {
+		printf("\b\b%2d", i);
+		temp_i = index1Group[i];
+		temp_j = index2Group[i];
+		for (int newIdx1 = 0;newIdx1<ptrLestSockCon->index1-1;newIdx1++)
+			for (int newIdx2 = 0; newIdx2 < SAMPFREQ; newIdx2++) {
+				dataa[i][newIdx1][newIdx2] = dataa[i][temp_i][temp_j];
+				if (++temp_j >= SAMPFREQ) {
+					temp_j = 0;
+					temp_i++;
+				}
+			}
+	}
+	cout << endl;
+
+
+	cout << "Data transforming\n"<<"\tProgressing second:  ";
 	
-	for (int second = 0; second < ptrLestSockCon->index1; second++){
+	for (int second = 0; second < ptrLestSockCon->index1; second++) {
 		printf("\b\b%2d", second);
-		for (int freq = 0; freq < SAMPFREQ; freq++){
+		for (int freq = 0; freq < SAMPFREQ; freq++) {
 			for (int device = 0; device < DEVICES_NUM; device++)
 				for (int chan = 0; chan < NUMCHAN - 4; chan++) {
 					for (int byte = 0; byte < DATA_BYTES; byte++)
-						temp += (unsigned int)(unsigned char)dataa[device][second + index1Group[device]][freq + index2Group[device]][chan * DATA_BYTES + byte] * power[byte];
+						temp += (unsigned int)(unsigned char)dataa[device][second][freq][chan * DATA_BYTES + byte] * power[byte];
 					final_data = (temp >= scale[HRES * 2] ? temp - scale[HRES * 2 + 1] : temp);
 					f1 << final_data * ConvFact << ",";
 					temp = 0;
@@ -175,6 +217,7 @@ void srvSock::dataTransform() {
 
 	}
 	f1.close();
+	cout << endl;
 
 }
 
@@ -183,11 +226,7 @@ bool greaterThan(const socketConnect& a, const socketConnect& b) {
 		return 1;
 	else if (a.index1 == b.index1) {
 		if (a.index2 > b.index2)
-			return 1;
-		else if (a.index2 == b.index2) {
-			if (a.samples > b.samples)
-				return 1;
-		}		
+			return 1;	
 	}	
 	return 0;
 }
@@ -195,7 +234,7 @@ bool greaterThan(const socketConnect& a, const socketConnect& b) {
 bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int maxSeconds ) {
 	double acc=0;
 	char refchar, tarchar;
-	for(int i=0;i<maxSeconds;i++)
+	for(int i=0;i<=maxSeconds;i++)
 		for (int j = 0; j < SAMPFREQ; j++) {
 			acc = 0;
 			for (int k = 0; k < TIMEBITS; k++) {
@@ -206,7 +245,7 @@ bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int ma
 				if ((refchar == '\0') && (tarchar == '\0')) {
 					//cout << "Í¬³¤¶È acc = "<<acc<<endl;
 					//printf("dataa[%d][%d][n+%d]refchar: %c, tarchar: %c\n ", i, j, k, refchar, tarchar);
-					if (acc * pow(10, k-1) < 20) {// Timestamp difference threshold is set as 20us
+					if (acc * pow(10, k-1) < 2) {// Timestamp difference threshold is set as 20us
 						index1 = i;
 						index2 = j;
 						return 1;
@@ -214,8 +253,10 @@ bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int ma
 					else
 						break;
 				}
-				else if ((tarchar == '\0') || (refchar == '\0'))
+				else if ((tarchar == '\0') || (refchar == '\0')) {
 					break;
+				}
+
 			}
 		}
 	return 0;

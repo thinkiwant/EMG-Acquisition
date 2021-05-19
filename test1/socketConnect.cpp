@@ -17,16 +17,15 @@ socketConnect::socketConnect(SOCKET clt_sock,string & add_str, const int nC, con
 	this_address = add_str;
 	mtx1.lock();
 	thisNum = ++this->num;
-	deviceNum = this_address.back()-'0';
+	deviceNum = this_address.back()-'2';
 	mtx1.unlock();
-	openFile();
+	//openFile();
 
 
 }
 
-
 socketConnect::~socketConnect() {
-	quit();
+	//quit();
 }
 
 void socketConnect::openFile() {
@@ -94,10 +93,14 @@ void socketConnect::record() {
 		initiated = true;
 	}
 
+	//recv_len = recv(s_accept, dataa[deviceNum-2][index1][index2], frames_bytes, 0);
+	recv_len = recv(s_accept, dataa[deviceNum][index1][index2], frames_bytes, 0);
 
-	recv_len = recv(s_accept, dataa[deviceNum-2][index1][index2], frames_bytes, 0);
 	int currentTime = timer.timeCount();
-	itoa(currentTime, &dataa[deviceNum - 2][index1][index2][frames_bytes],10);
+	itoa(currentTime, &dataa[deviceNum][index1][index2][frames_bytes],10);
+	//itoa(currentTime, &dataa[deviceNum - 2][index1][index2][frames_bytes], 10);
+
+
 	if (++index2 == SAMPFREQ) {
 		index2 = 0;
 		index1++;
@@ -143,5 +146,5 @@ void socketConnect::quit() {
 	//WSACleanup();
 	closesocket(s_accept);
 	print("Disconnected");
-	closeFile();
+	//closeFile();
 }
