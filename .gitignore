@@ -23,3 +23,8 @@
 *.obj
 *.txt
 *.recipe
+*.png
+*.exe
+*.exe
+*.db
+.vs/test1/v16/.suo

@@ -1,5 +1,0 @@
-﻿  entry.cpp
-C:\Users\Kevin\Documents\GitHub\test1\test1\entry.cpp(62,30): warning C4390: “;”: 找到空的受控语句；这是否是有意的?
-  srvSock.cpp
-  正在生成代码...
-  test1.vcxproj -> C:\Users\Kevin\Documents\GitHub\test1\Debug\test1.exe
