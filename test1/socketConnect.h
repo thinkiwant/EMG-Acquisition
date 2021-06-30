@@ -40,7 +40,8 @@ public:
 	static int num;
 	int index1 = 0, index2 = 0, samples = 0, deviceNum;
 	//int syncCount=50;
-	static char cmd[2];
+	SYSTEMTIME init_time;
+	static char cmd[4];
 	socketConnect(SOCKET clt_sock, string& add_str, const int nC = NUMCHAN, const int dB = DATA_BYTES, const int sF = SAMPFREQ);
 	~socketConnect();
 

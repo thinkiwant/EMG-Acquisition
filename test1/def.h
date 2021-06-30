@@ -2,7 +2,7 @@
 #include<cstdio>
 
 //模块控制字
-
+#define GETSET 0 //0:set or 1:get settings
 #define FSAMP 1 // 0:500Hz 1:1k 2:2k 3:4k
 #define NCH 3
 #define MODE 0
@@ -84,7 +84,7 @@ define DATA_BYTES  2
 #endif
 
 //运行参数
-#define MAX_SECONDS 100
+#define MAX_SECONDS 500
 #define DEVICES_NUM 4
 #define INDEXDIFF 0 //  "X - index"  X:=from 192.168.1.1X( X is also the deviceNum field of the SsocketConnect class) of index:= Sorder in dataa array
 #define TIMEBITS 8

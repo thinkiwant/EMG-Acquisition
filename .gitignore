@@ -28,3 +28,5 @@
 *.exe
 *.db
 .vs/test1/v16/.suo
+*.rar
+*.ilk

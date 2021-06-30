@@ -26,7 +26,7 @@ int main() {
 	dataa[2] = data3;
 	dataa[3] = data4;
 	//设置控制字
-	char command[2] = { 0,0 };
+	char command[4] = { 0,0,5,0 };
 	command[1] |= GO; //控制字1
 	command[1] |= REC * 2;
 	command[1] |= TRIG * 4;
@@ -36,8 +36,11 @@ int main() {
 	command[0] |= MODE;//控制字0
 	command[0] |= NCH * 8;
 	command[0] |= FSAMP * 32;
+	command[0] |= GETSET * 128;
 	socketConnect::cmd[0] = command[0];
 	socketConnect::cmd[1] = command[1];
+	socketConnect::cmd[2] = command[2];
+	socketConnect::cmd[3] = command[3];
 
 	for (int i = 0; i < DEVICES_NUM; i++)
 		for (int j = 0; j < MAX_SECONDS; j++) {
@@ -63,12 +66,7 @@ int main() {
 			cout << "Entry q to exit from the program.\n";
 	}
 	t1.join();
-	cout << "Enter S to tranform the data.\n";
-	char temp = getchar();
-		
-	if (getchar() == 's') {
-		cout << "Transforming data\n";
-	}
+
 
 	//free dynamic arrays
 	/*

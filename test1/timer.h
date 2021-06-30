@@ -14,7 +14,7 @@ public:
 	LARGE_INTEGER begin();
 	LARGE_INTEGER begin(LARGE_INTEGER);
 	LARGE_INTEGER getCurrentTime();
-	int timeCount();//输出单位为100us
+	int timeCount();//返回自开始以来的时间间隔，输出单位为100us
 
 };
 

@@ -18,7 +18,7 @@ LARGE_INTEGER Timer::getCurrentTime() {
 	return nCurrentTime;
 }
 
-int Timer::timeCount() {
+int Timer::timeCount() { 
 	QueryPerformanceCounter(&nCurrentTime);
 	return ((double)(nCurrentTime.QuadPart - nBeginTime.QuadPart) / (double)nFreq.QuadPart) * 10000;
 }

@@ -43,6 +43,7 @@ void srvSock::run() {
 								srvaccept();
 							else {
 								if (i > initCount - 1)
+									i = i;
 									cltsocks[i - initCount]->record();
 							}
 						}
@@ -123,7 +124,7 @@ void srvSock::setSockOpt() {
 	int len = sizeof(optval);
 
 	state = setsockopt(srvsock, IPPROTO_TCP, TCP_NODELAY, (char*)&optval, len);
-	state = getsockopt(srvsock, IPPROTO_TCP, TCP_NODELAY, (char*)&optval, &len);
+	//state = getsockopt(srvsock, IPPROTO_TCP, TCP_NODELAY, (char*)&optval, &len);
 
 	if (!state)
 		printf("***** Nagle is enabled ? %d\n ", optval);
@@ -135,12 +136,7 @@ void srvSock::disconnect() {
 }
 
 void srvSock::dataTransform() {
-	time_t now = time(0);
-	tm* gmtm = gmtime(& now);
-	string time1{ to_string(gmtm->tm_year+1900) };
-	time1 = time1 +"-" +to_string(gmtm->tm_mon+1) + "-" + to_string(gmtm->tm_mday) + "-" + to_string(gmtm->tm_hour+8) + "-" + to_string(gmtm->tm_min) + "-" + to_string(gmtm->tm_sec);
-	time1 += ".csv";
-	std::ofstream f1(time1.c_str());
+
 	int index1Group[DEVICES_NUM]{ 0,0,0 }, index2Group[DEVICES_NUM]{ 0,0,0 };
 	int temp = 0,final_data=0;
 
@@ -157,8 +153,10 @@ void srvSock::dataTransform() {
 	}
 	std::cout << "The last device is " << ptrLestSockCon->deviceNum << endl;
 	std::cout << "The maxseconds: " << ptrLestSockCon->index1<<", time series: "<<ptrLestSockCon->index2 << endl;
-
-	
+	string time1{ to_string(ptrLestSockCon->init_time.wYear) };
+	time1 = time1 + "-" + to_string(ptrLestSockCon->init_time.wMonth) + "-" + to_string(ptrLestSockCon->init_time.wDay) + "-" + to_string(ptrLestSockCon->init_time.wHour) + "-" + to_string(ptrLestSockCon->init_time.wMinute) + "-" + to_string(ptrLestSockCon->init_time.wSecond)+"-"+to_string(ptrLestSockCon->init_time.wMilliseconds);
+	time1 += ".csv";
+	std::ofstream f1(time1.c_str());
 	/*
 		for (int i = 0; i < DEVICES_NUM; i++)
 			for(int j=0;j<100;j++)
@@ -167,22 +165,23 @@ void srvSock::dataTransform() {
 
 
 	for (int i = 0; i < DEVICES_NUM; i++) {
+		const int drop_time1 = 0, drop_time2 = 200; // Drop unstable preceding data 
 		if (i == lestDeviceId-INDEXDIFF) {
-			index1Group[i] = 0;// Set the number of samples to drop
-			index2Group[i] = 200;
+			index1Group[i] =  drop_time1;
+			index2Group[i] =  drop_time2;
 		}
 		else
 		{
-			if (!findIndex(index1Group[i], index2Group[i], dataa[i], &dataa[lestDeviceId-INDEXDIFF][0][200][NUMCHAN*DATA_BYTES], ptrLestSockCon->index1))//Set the number of samples to drop
-				cout << "Device " << i << " Find Index error" << endl;
+			if (!findIndex(index1Group[i], index2Group[i], dataa[i], &dataa[lestDeviceId-INDEXDIFF][drop_time1][drop_time2][NUMCHAN*DATA_BYTES], ptrLestSockCon->index1))
+				std::cout << "Device " << i << " Find Index error" << endl;
 			else
-				cout <<"Device "<< i << " Index found successfully" << endl;
+				std::cout <<"Device "<< i << " Index found successfully" << endl;
 		}
 
 	}
 
 	int temp_i=0, temp_j=0;
-	cout << "rectify device:  ";
+	std::cout << "rectify device:  ";
 	for (int i = 0; i < DEVICES_NUM; i++) {
 		printf("\b\b%2d", i);
 		temp_i = index1Group[i];
@@ -196,10 +195,10 @@ void srvSock::dataTransform() {
 				}
 			}
 	}
-	cout << endl;
+	std::cout << endl;
 
 
-	cout << "Data transforming\n"<<"\tProgressing second:  ";
+	std::cout << "Data transforming\n"<<"\tProgressing second:  ";
 	
 	for (int second = 0; second < ptrLestSockCon->index1; second++) {
 		printf("\b\b%2d", second);
@@ -217,7 +216,7 @@ void srvSock::dataTransform() {
 
 	}
 	f1.close();
-	cout << endl;
+	std::cout << endl;
 
 }
 
@@ -234,7 +233,7 @@ bool greaterThan(const socketConnect& a, const socketConnect& b) {
 bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int maxSeconds ) {
 	double acc=0;
 	char refchar, tarchar;
-	for(int i=0;i<=maxSeconds;i++)
+	for (int i = 0; i <= maxSeconds; i++) {
 		for (int j = 0; j < SAMPFREQ; j++) {
 			acc = 0;
 			for (int k = 0; k < TIMEBITS; k++) {
@@ -243,9 +242,9 @@ bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int ma
 
 				acc += (refchar - tarchar) * pow(0.1, k);
 				if ((refchar == '\0') && (tarchar == '\0')) {
-					//cout << "同长度 acc = "<<acc<<endl;
+					//std::cout << "同长度 acc = " << acc << endl;
 					//printf("dataa[%d][%d][n+%d]refchar: %c, tarchar: %c\n ", i, j, k, refchar, tarchar);
-					if (acc * pow(10, k-1) < 2) {// Timestamp difference threshold is set as 20us
+					if (acc * pow(10, k - 1) < 20) {// Timestamp difference threshold is set as 20us
 						index1 = i;
 						index2 = j;
 						return 1;
@@ -259,5 +258,7 @@ bool findIndex(int& index1, int& index2,char*** targetTime,char* refTime, int ma
 
 			}
 		}
+	}
+		
 	return 0;
 }

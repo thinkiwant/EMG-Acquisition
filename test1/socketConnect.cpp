@@ -90,8 +90,13 @@ void socketConnect::record() {
 			timer.begin(refTime);
 		}
 		mtx2.unlock();
+
+		GetLocalTime(&init_time);
+
 		initiated = true;
 	}
+
+
 
 	//recv_len = recv(s_accept, dataa[deviceNum-2][index1][index2], frames_bytes, 0);
 	recv_len = recv(s_accept, dataa[deviceNum][index1][index2], frames_bytes, 0);
@@ -141,6 +146,10 @@ void socketConnect::print(const string& s) {
 }
 
 void socketConnect::quit() {
+	
+	//char exitCmd[2] = { cmd[0], cmd[1] };
+	//exitCmd[1] &= 0xfc;// stop recording on the SD card
+	//char exitCmd[2] = { 0,0x0c };
 	char exitCmd[2] = { 0,0 };
 	sendCmd(exitCmd);
 	//WSACleanup();
